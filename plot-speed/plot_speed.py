@@ -35,7 +35,7 @@ if nvidia or amd:
     print('AMD GPU detected!')
 else:
   print('No Nvidia or AMD GPU in system!')
-  print('This might be because we are evaluating files over the network and not on the PoST generation host directly.')
+  print('Maybe we are evaluating files over the network and not on the PoST generation host directly.')
 print()
 
 if len(sys.argv) < 2:
