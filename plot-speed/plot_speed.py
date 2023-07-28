@@ -12,43 +12,56 @@ import re
 import sys
 import json
 import datetime
+import platform
 import subprocess
 
+uname = platform.uname()
+operating_system = sys.platform
 nvidia = False
 amd = False
-try:
-  subprocess.check_output('nvidia-smi')
-  nvidia = True
-except Exception: # this command not being found can raise quite a few different errors depending on the configuration
-  nvidia = False
-try:
-  subprocess.check_output('rocm-smi')
-  amd = True
-except Exception:
-  amd = False
+print_header = True
 
-if nvidia or amd:
-  if nvidia:
-    print('Nvidia GPU detected!')
-    subprocess.run('nvidia-smi -L')
-  if amd:
-    print('AMD GPU detected!')
-else:
-  print('No Nvidia or AMD GPU in system!')
-  print('Maybe we are evaluating files over the network and not on the PoST generation host directly.')
-print()
+def detect_gpus():
+  try:
+    subprocess.check_output('nvidia-smi')
+    nvidia = True
+  except Exception: # this command not being found can raise quite a few different errors depending on the configuration
+    nvidia = False
+  try:
+    subprocess.check_output('rocm-smi')
+    amd = True
+  except Exception:
+    amd = False
+
+  if nvidia or amd:
+    if nvidia:
+      print('GPU: Nvidia')
+      subprocess.run('nvidia-smi -L')
+    if amd:
+      print('GPU: AMD')
+  else:
+    print('GPU: Not found. Maybe we are evaluating files over the network, or not on the PoST gen host.')
+  print()
+
+def print_syntax():
+  print("syntax: python plot_speed.py <directory>")
+  sys.exit(1)
 
 if len(sys.argv) < 2:
-    print("syntax: plot_speed.py <directory>")
-    sys.exit(1)
+  print_syntax()
+
+if print_header:
+  print("SpaceMesh PoST Plot Speed (https://github.com/CryptoZanoryt/plot-speed)")
+  print()
+  print(f"Platform: {uname.system} {uname.release}")
+  detect_gpus()
 
 directory = sys.argv[1]
-
 if not os.path.isdir(directory):
     print("The provided directory does not exist.")
     sys.exit(1)
 
-# Read pos size from config
+# Read postdata metadata
 with open(directory + "/postdata_metadata.json", "r") as file:
     json_data = file.read()
 data = json.loads(json_data)
@@ -87,7 +100,7 @@ if len(files) >= 2:
     file_path = os.path.join(directory, file)
     if os.path.getsize(file_path) == max_file_size:
       most_recent_complete_file = second_most_recent_complete_file
-      second_most_recent_complete_file = os.path.join(directory, file) 
+      second_most_recent_complete_file = os.path.join(directory, file)
       if most_recent_complete_file is not None and second_most_recent_complete_file is not None:
         break
 
