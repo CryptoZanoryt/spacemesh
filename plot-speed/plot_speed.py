@@ -167,4 +167,4 @@ if first_file is not None and most_recent_complete_file is not None and second_m
   print(f"Estimated finish time ....................... {recent_etf_string}")
   print(f"Estimated finish date ....................... {efd}")
 else:
-  print("There are not enough files in the directory.")
+  print("There are not enough files in the directory yet. Will calculate once the first file completes.")
