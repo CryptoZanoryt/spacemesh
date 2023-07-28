@@ -14,12 +14,28 @@ import json
 import datetime
 import subprocess
 
+nvidia = False
+amd = False
 try:
-    subprocess.check_output('nvidia-smi')
+  subprocess.check_output('nvidia-smi')
+  nvidia = True
+except Exception: # this command not being found can raise quite a few different errors depending on the configuration
+  nvidia = False
+try:
+  subprocess.check_output('rocm-smi')
+  amd = True
+except Exception:
+  amd = False
+
+if nvidia or amd:
+  if nvidia:
     print('Nvidia GPU detected!')
     subprocess.run('nvidia-smi -L')
-except Exception: # this command not being found can raise quite a few different errors depending on the configuration
-    print('No Nvidia GPU in system! We might be evaluating files over the network and not on the PoST generation host directly.')
+  if amd:
+    print('AMD GPU detected!')
+else:
+  print('No Nvidia or AMD GPU in system!')
+  print('This might be because we are evaluating files over the network and not on the PoST generation host directly.')
 print()
 
 if len(sys.argv) < 2:
