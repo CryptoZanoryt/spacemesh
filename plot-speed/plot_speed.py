@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+#
+# plot_speed.py
+#
+# Based on original plot_speed.py, with impropvements.
+#
+# Author: Zanoryt <zanoryt@protonmail.com>
+#
 
 import os
 import re
