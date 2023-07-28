@@ -14,6 +14,7 @@ This was taken from the original `plot_speed.sh` and was augmented to add:
     ```git clone https://github.com/CryptoZanoryt/spacemesh```
 
 2. Change to the new clone path.
+
     `cd spacemesh/plot-speed`
 
 3. Run!
