@@ -105,7 +105,7 @@ if len(files) >= 2:
     total_size += os.path.getsize(file_path)
 
 # Calculate the time difference and throughput if both files are found
-if first_file is not None and most_recent_complete_file is not None and second_most_recent_complete_file is not None and last_file is not None:
+if first_file is not None and most_recent_complete_file is not None and last_file is not None:
   first_time = os.path.getmtime(first_file)
   most_recent_time = os.path.getmtime(most_recent_complete_file)
   last_time = os.path.getmtime(last_file)
