@@ -2,7 +2,7 @@
 
 Measure progress of your SpaceMesh smesher.
 
-This was taken from the original `plot_speed.sh` and was augmented to add:
+This was taken from the original `plot_speed.py` and was augmented to add:
 * additional statistics output
 * realtime and average rates
 * support of multiple plot segment files created by multi-GPU generation by multiple instances of `postcli`
