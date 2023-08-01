@@ -1,4 +1,6 @@
-# plot-speed
+# smesher-plot-speed
+
+*Also known as **Zanoryt's Enhanced SpaceMesh PoST Plot Speed***.
 
 Measure progress of your SpaceMesh smesher.
 
@@ -6,6 +8,7 @@ This was taken from the original `plot_speed.py` and was augmented to add:
 * additional statistics output
 * realtime and average rates
 * support of multiple plot segment files created by multi-GPU generation by multiple instances of `postcli`
+* optionally send anonymized reports to reports.smesh.cloud (disabled by default)
 
 ## Usage
 
@@ -21,8 +24,31 @@ This was taken from the original `plot_speed.py` and was augmented to add:
 
     On Linux/MacOS:
 
-    `./plot_speed.sh`
+    `python smesher-plot-speed.py <path-to-your-post-files>`
+
+    Example: `python smesher-plot-speed.py .`
 
     On Windows:
 
-    `.\plot_speed.bat`
+    `python smesher-plot-speed.py <path-to-your-post-files>`
+
+    Example: `python smesher-plot-speed.py C:\SMESH\plot`
+
+    There is an optional .BAT file you can customize to make executing this easier.
+
+## Syntax
+
+```
+python3 smesher-plot-speed.py --help
+Syntax: python smesher-plot-speed.py [options] <directory>
+
+Options:
+  --json         Output JSON
+  --no-header    Do not print header
+  --send-report  Send report to reports.smesh.cloud
+  --version      Print version
+  --help         Print help
+
+Arguments:
+  directory      The directory containing postdata_metadata.json, smeshing_metadata.json, and postdata_*.bin files
+```
