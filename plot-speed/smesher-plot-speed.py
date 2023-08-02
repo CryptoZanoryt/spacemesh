@@ -18,7 +18,7 @@ import platform
 import urllib.request
 import subprocess
 
-version = "1.0.0"
+version = "1.0.1"
 uname = platform.uname()
 operating_system = { 'system': None, 'version': None }
 cpu = { 'name': '' }
