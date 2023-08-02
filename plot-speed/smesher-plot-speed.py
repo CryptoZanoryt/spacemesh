@@ -207,7 +207,6 @@ def detect_linux_distribution():
 
 def detect_os():
   global operating_system
-  print(platform.system())
   if platform.system() == 'Linux':
     distro_name, distro_version, distro_id = detect_linux_distribution()
     operating_system = {
@@ -215,7 +214,6 @@ def detect_os():
       'distribution': distro_id,
       'version': distro_version
     }
-    print(operating_system)
   if platform.system() == 'Darwin' and hasattr(platform, 'mac_ver'):
     operating_system = {
       'system': 'macOS',
