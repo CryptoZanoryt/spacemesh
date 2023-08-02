@@ -10,6 +10,8 @@ This was taken from the original `plot_speed.py` and was augmented to add:
 * support of multiple plot segment files created by multi-GPU generation by multiple instances of `postcli`
 * optionally send anonymized reports to reports.smesh.cloud (disabled by default)
 
+Reports are collected at https://reports.smesh.cloud to show others what to expect from their hardware. You are encouraged to contribute by specifying the `--report` flag.
+
 ## Usage
 
 1. Clone the repository.
@@ -26,7 +28,7 @@ This was taken from the original `plot_speed.py` and was augmented to add:
 
     `python smesher-plot-speed.py <path-to-your-post-files>`
 
-    Example: `python smesher-plot-speed.py .`
+    Example: `python smesher-plot-speed.py ~/plot`
 
     On Windows:
 
@@ -45,7 +47,7 @@ Syntax: python smesher-plot-speed.py [options] <directory>
 Options:
   --json         Output JSON
   --no-header    Do not print header
-  --send-report  Send report to reports.smesh.cloud
+  --report       Send report to reports.smesh.cloud
   --version      Print version
   --help         Print help
 
