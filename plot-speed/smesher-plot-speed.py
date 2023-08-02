@@ -115,22 +115,25 @@ def detect_amd_gpus():
 
 def detect_intel_gpus():
   gpu_info = []
-  command = 'lspci -mm -n -d ::0300 2>/dev/null | awk -F " " \'{print $3}\''
   try:
+    subprocess.run(['update-pciids'])  # Update PCI ID database
+    command = 'lspci -mm -n -d ::0300 2>/dev/null | awk -F " " \'{print $1":"$2}\''
     output = subprocess.check_output(command, shell=True).decode().strip()
-    gpu_device_ids = output.split('\n')
-    for device_id in gpu_device_ids:
-      model_name = detect_intel_model_name(device_id)
-      if model_name:
-        name = 'Intel ' + model_name
-        gpu_info.append({'vendor': 'Intel', 'model': model_name, 'name': name})
+    device_ids = output.split('\n')
+    for device_id in device_ids:
+      vendor_id, model_id = device_id.split(':')
+      if vendor_id == '8086':  # Intel vendor ID
+        model_name = detect_intel_model_name(vendor_id, model_id)
+        if model_name:
+          name = 'Intel ' + model_name
+          gpu_info.append({'vendor': 'Intel', 'model': model_name, 'name': name})
   except subprocess.CalledProcessError:
-    gpu_info.extend(detect_intel_gpus_alt())
+    pass
   return gpu_info
 
-def detect_intel_model_name(device_id):
-  command = f'lspci -mm -n -s {device_id} -vnn 2>/dev/null | grep "Device" | awk -F ": " \'{{print $2}}\''
+def detect_intel_model_name(vendor_id, model_id):
   try:
+    command = f'lspci -mm -n -s {vendor_id}:{model_id} -vnn 2>/dev/null | grep "Device" | awk -F ":" \'{{print $2}}\''
     output = subprocess.check_output(command, shell=True).decode().strip()
     model_name = output.split(' [')[0]
     return model_name
