@@ -239,7 +239,9 @@ def detect_provider():
     if force_gpu:
       provider = 'GPU'
   else:
-    if nvidia or amd:
+    if any(gpu['vendor'] == 'NVIDIA' for gpu in gpus):
+      provider = 'GPU'
+    elif any(gpu['vendor'] == 'AMD' for gpu in gpus):
       provider = 'GPU'
     else:
       provider = 'CPU'
