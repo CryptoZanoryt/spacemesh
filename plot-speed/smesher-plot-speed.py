@@ -21,8 +21,11 @@ import subprocess
 version = "1.0.0"
 uname = platform.uname()
 operating_system = sys.platform
+provider = 'CPU'
 nvidia = False
 amd = False
+force_cpu = False
+force_gpu = False
 print_header = True
 output_json = False
 directory = None
@@ -53,16 +56,37 @@ def detect_gpus():
   except Exception:
     amd = False
 
+def detect_provider():
+  global provider
+  if force_cpu or force_gpu:
+    if force_cpu:
+      provider = 'CPU'
+    if force_gpu:
+      provider = 'GPU'
+  else:
+    if nvidia or amd:
+      provider = 'GPU'
+    else:
+      provider = 'CPU'
+
+def print_cpu_info():
+  print('Detected CPU: ' + uname.processor)
+
 def print_gpu_info():
   if nvidia or amd:
     if nvidia:
-      print('GPU: Nvidia')
+      print('Detected GPU: Nvidia')
       subprocess.run('nvidia-smi -L')
     if amd:
-      print('GPU: AMD')
+      print('Detected GPU: AMD')
   else:
-    print('GPU: Not found. Maybe we are evaluating files over the network, or not on the PoST gen host.')
-  print()
+    print('Detected GPU: N/A')
+
+def print_provider_info():
+  if force_cpu or force_gpu:
+    print(f"Provider: {provider} (forced)")
+  else:
+    print(f"Provider: {provider}")
 
 def parse_arguments():
   global output_json
@@ -74,12 +98,18 @@ def parse_arguments():
     output_json = True
     print_header = False
     sys.argv.remove("--json")
-  if "--send-report" in sys.argv:
-    send_report = True
-    sys.argv.remove("--send-report")
   if "--no-header" in sys.argv:
     print_header = False
     sys.argv.remove("--no-header")
+  if "--report" in sys.argv:
+    send_report = True
+    sys.argv.remove("--report")
+  if "--report-force-cpu" in sys.argv:
+    force_cpu = True
+    sys.argv.remove("--report-force-cpu")
+  if "--report-force-gpu" in sys.argv:
+    force_gpu = True
+    sys.argv.remove("--report-force-gpu")
   if "--version" in sys.argv:
     print(f"smesher-plot-speed.py version {version}")
     sys.exit(0)
@@ -137,10 +167,18 @@ def print_output():
       'system': uname.system,
       'release': uname.release
     },
+    'cpu': {
+      'type': uname.processor
+    },
     'gpu': {
       'nvidia': nvidia,
       'amd': amd,
       'devices': []
+    },
+    'provider': {
+      'force_cpu': force_cpu,
+      'force_gpu': force_gpu,
+      'type': provider
     },
     'metadata': {
       'postdata': postdata,
@@ -189,11 +227,13 @@ def print_syntax():
   print("Syntax: python smesher-plot-speed.py [options] <directory>")
   print()
   print("Options:")
-  print("  --json         Output JSON")
-  print("  --no-header    Do not print header")
-  print("  --send-report  Send report to reports.smesh.cloud")
-  print("  --version      Print version")
-  print("  --help         Print help")
+  print("  --json              Output JSON")
+  print("  --no-header         Do not print header")
+  print("  --report            Send report to reports.smesh.cloud")
+  print("  --report-force-cpu  Force CPU provider")
+  print("  --report-force-gpu  Force GPU provider")
+  print("  --version           Print version")
+  print("  --help              Print help")
   print()
   print("Arguments:")
   print("  directory      The directory containing postdata_metadata.json, smeshing_metadata.json, and postdata_*.bin files")
@@ -217,10 +257,13 @@ parse_arguments()
 detect_gpus()
 
 if print_header:
-  print(f"Zanoryt's Enhanced SpaceMesh PoST Plot Speed v{version} ({github_url})")
+  print(f"Smesher Plot Speed v{version} ({github_url})")
   print()
-  print(f"Platform: {uname.system} {uname.release}")
+  print_cpu_info()
   print_gpu_info()
+  print_provider_info()
+  print(f"OS: {uname.system} {uname.release}")
+  print()
 
 directory = sys.argv[1]
 if not os.path.isdir(directory):
@@ -243,18 +286,11 @@ previous_most_recent_complete_file = None
 
 # Check if at least two files exist
 if len(files_by_mod_time_desc) >= 2:
-  # Get the most recent file that is complete (equal to the size of max_file_size)
-  for file in files_by_size:
-    file_path = os.path.join(directory, file)
-    if os.path.getsize(file_path) == postdata['max_file_size']:
-      previous_most_recent_complete_file = most_recent_complete_file
-      most_recent_complete_file = os.path.join(directory, file)
-      if most_recent_complete_file is not None and previous_most_recent_complete_file is not None:
-        break
-
-  # Get the size of the first file in the list
+  complete_files = [file for file in files_by_mod_time_desc if os.path.getsize(os.path.join(directory, file)) == postdata['max_file_size']]
+  #print(f"complete_files {complete_files}")
   first_file = os.path.join(directory, files_by_mod_time_desc[-1])
-  almost_last_file = os.path.join(directory, files_by_mod_time_desc[1])
+  previous_most_recent_complete_file = os.path.join(directory, complete_files[1])
+  most_recent_complete_file = os.path.join(directory, complete_files[0])
   current_file = os.path.join(directory, files_by_mod_time_desc[0])
 
   first_file_size = os.path.getsize(first_file)
