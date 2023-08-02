@@ -76,3 +76,9 @@ echo ""
 echo "  screen -d -r post"
 echo ""
 echo "Have fun!"
+
+# Sleep forever since things are running in the background
+while true
+do
+  sleep 5
+done
