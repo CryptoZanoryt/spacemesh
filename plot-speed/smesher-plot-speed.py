@@ -15,12 +15,13 @@ import sys
 import json
 import datetime
 import platform
-import requests
+import urllib.request
 import subprocess
 
 version = "1.0.0"
 uname = platform.uname()
 operating_system = None
+cpu = { 'name': '' }
 provider = 'CPU'
 nvidia = False
 amd = False
@@ -39,6 +40,30 @@ def calculate_current_post_size_GiB(directory):
     file_path = os.path.join(directory, file)
     current_post_size_GiB += os.path.getsize(file_path) / postdata['gb_size']
   return current_post_size_GiB
+
+def detect_cpu():
+  global cpu
+  if platform.system() == "Windows":
+    cpu = {
+      'name': platform.processor(),
+      'type': platform.processor()
+    }
+  elif platform.system() == "Darwin":
+    os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
+    command ="sysctl -n machdep.cpu.brand_string"
+    cpu = {
+      'name': subprocess.check_output(command).strip(),
+      'type': subprocess.check_output(command).strip()
+    }
+  elif platform.system() == "Linux":
+    command = "cat /proc/cpuinfo"
+    all_info = subprocess.check_output(command, shell=True).decode().strip()
+    for line in all_info.split("\n"):
+      if "model name" in line:
+        cpu = {
+          'name': re.sub( ".*model name.*:", "", line, 1),
+          'type': re.sub( ".*model name.*:", "", line, 1)
+        }
 
 def detect_gpus():
   global nvidia
@@ -93,7 +118,7 @@ def detect_provider():
       provider = 'CPU'
 
 def print_cpu_info():
-  print('Detected CPU: ' + uname.machine)
+  print('Detected CPU: ' + cpu['type'])
 
 def print_gpu_info():
   if nvidia or amd:
@@ -195,9 +220,7 @@ def print_output():
       'system': uname.system,
       'release': uname.release
     },
-    'cpu': {
-      'type': uname.machine
-    },
+    'cpu': cpu,
     'gpu': {
       'nvidia': nvidia,
       'amd': amd,
@@ -226,7 +249,7 @@ def print_output():
       'first': { 'path': first_file, 'size': first_file_size, 'time_since_modified': time_since_first },
       'previous_most_recent_complete': { 'path': previous_most_recent_complete_file, 'size': os.path.getsize(previous_most_recent_complete_file), 'time_since_modified': time_since_previous_most_recent },
       'most_recent_complete': { 'path': most_recent_complete_file, 'size': most_recent_complete_file_size, 'time_since_modified': time_since_most_recent },
-      'current': { 'path': current_file, 'size': last_size, 'time_since_modified': time_since_current }
+      'current': { 'path': current_file, 'size': current_size, 'time_since_modified': time_since_current }
     },
     'most_recent_time_delta_string': most_recent_time_delta_string,
   }
@@ -269,8 +292,14 @@ def print_syntax():
   print()
 
 def post_report(data):
-  response = requests.post('https://reports.smesh.cloud/api/reports/receive', json=data)
-  if response.status_code == 200:
+  headers = { 'Content-Type': 'application/json' }
+  request = urllib.request.Request(url='https://reports.smesh.cloud/api/reports/receive', method='POST')
+  request.add_header('Content-Type', 'application/json')
+  request.add_header('User-Agent', 'smesher-plot-speed')
+  response = urllib.request.urlopen(request, json.dumps(data).encode())
+  _content = response.read()
+
+  if response.status == 200:
     data['report'] = {
       'sent': True
     }
@@ -283,6 +312,7 @@ def post_report(data):
   return data
 
 parse_arguments()
+detect_cpu()
 detect_os()
 detect_gpus()
 detect_provider()
@@ -313,18 +343,22 @@ first_file = None
 first_file_size = 0
 total_size = 0
 most_recent_complete_file = None
+most_recent_complete_file_size = None
+most_recent_time_delta_string = None
 previous_most_recent_complete_file = None
+previous_most_recent_complete_file_size = None
 
 # Check if at least two files exist
 if len(files_by_mod_time_desc) >= 2:
   complete_files = [file for file in files_by_mod_time_desc if os.path.getsize(os.path.join(directory, file)) == postdata['max_file_size']]
-  #print(f"complete_files {complete_files}")
   first_file = os.path.join(directory, files_by_mod_time_desc[-1])
   previous_most_recent_complete_file = os.path.join(directory, complete_files[1])
   most_recent_complete_file = os.path.join(directory, complete_files[0])
   current_file = os.path.join(directory, files_by_mod_time_desc[0])
 
   first_file_size = os.path.getsize(first_file)
+  most_recent_complete_file_size = os.path.getsize(most_recent_complete_file)
+  current_size = os.path.getsize(current_file)
 
   # Get the total size of the files in the directory except the first file in the list
   total_size = 0
@@ -348,65 +382,71 @@ if first_file is not None and most_recent_complete_file is not None and current_
   time_since_most_recent = abs(now - most_recent_time)
   time_between_most_recent_and_current = abs(current_time - most_recent_time)
 
-  #print(f"complete {most_recent_complete_file} {most_recent_time}")
-  #print(f"last {last_file} {last_time}")
-  #print(f"total_size {total_size}")
-  #print(f"first_file_size {first_file_size}")
+  if current_file == most_recent_complete_file:
+    print(f"PoST generation is complete!")
+    print()
+    progress_percent = 100
+    remaining_post_size_GiB = 0
+    throughput_MiBps = 0
+    recent_throughput_MiBps = 0
+    recent_etf_string = ""
+    efd = None
+    size_MiB = (total_size - first_file_size) / (1024 * 1024)  # Convert size to MiB
+    throughput_MiBps = size_MiB / first_time_diff
+  else:
+    # Calculate throughput in MiB/s
+    size_MiB = (total_size - first_file_size) / (1024 * 1024)  # Convert size to MiB
+    throughput_MiBps = size_MiB / first_time_diff
 
-  # Calculate throughput in MiB/s
-  size_MiB = (total_size - first_file_size) / (1024 * 1024)  # Convert size to MiB
-  throughput_MiBps = size_MiB / first_time_diff
+    most_recent_complete_file_size = os.path.getsize(most_recent_complete_file)
+    recent_size_MiB = (current_size) / (1024 * 1024)
+    recent_throughput_MiBps = recent_size_MiB / time_between_most_recent_and_current
+    #print(f"size_MiB {size_MiB}")
+    #print(f"throughput_MiBps {throughput_MiBps}")
+    #print(f"recent_size_MiB {recent_size_MiB}")
+    #print(f"recent_throughput_MiBps {recent_throughput_MiBps}")
 
-  last_size = os.path.getsize(current_file)
-  most_recent_complete_file_size = os.path.getsize(most_recent_complete_file)
-  recent_size_MiB = (last_size) / (1024 * 1024)
-  recent_throughput_MiBps = recent_size_MiB / time_between_most_recent_and_current
-  #print(f"size_MiB {size_MiB}")
-  #print(f"throughput_MiBps {throughput_MiBps}")
-  #print(f"recent_size_MiB {recent_size_MiB}")
-  #print(f"recent_throughput_MiBps {recent_throughput_MiBps}")
+    # Calculate time difference in minutes and seconds
+    first_minutes, first_seconds = divmod(first_time_diff, 60)
+    first_minutes = int(first_minutes)  # Convert minutes to integer
+    first_seconds = int(first_seconds)  # Convert seconds to integer
+    first_time_delta_string = f"{first_minutes:02d}m {first_seconds:02d}s"
 
-  # Calculate time difference in minutes and seconds
-  first_minutes, first_seconds = divmod(first_time_diff, 60)
-  first_minutes = int(first_minutes)  # Convert minutes to integer
-  first_seconds = int(first_seconds)  # Convert seconds to integer
-  first_time_delta_string = f"{first_minutes:02d}m {first_seconds:02d}s"
+    most_recent_minutes, most_recent_seconds = divmod(time_since_most_recent, 60)
+    most_recent_minutes = int(most_recent_minutes)  # Convert minutes to integer
+    most_recent_seconds = int(most_recent_seconds)  # Convert seconds to integer
+    most_recent_time_delta_string = f"{most_recent_minutes:02d}m {most_recent_seconds:02d}s"
 
-  most_recent_minutes, most_recent_seconds = divmod(time_since_most_recent, 60)
-  most_recent_minutes = int(most_recent_minutes)  # Convert minutes to integer
-  most_recent_seconds = int(most_recent_seconds)  # Convert seconds to integer
-  most_recent_time_delta_string = f"{most_recent_minutes:02d}m {most_recent_seconds:02d}s"
+    progress_percent = current_post_size_GiB / postdata['total_post_size_GiB'] * 100
 
-  progress_percent = current_post_size_GiB / postdata['total_post_size_GiB'] * 100
+    # estimated time to finish
+    remaining_post_size_GiB = postdata['total_post_size_GiB'] - current_post_size_GiB
+    etf_sec = remaining_post_size_GiB / (throughput_MiBps / 1024)
+    days, remainder = divmod(etf_sec, 86400)    # 86400 seconds in a day
+    hours, remainder = divmod(remainder, 3600)  # 3600 seconds in an hour
+    minutes, seconds = divmod(remainder, 60)
+    days = int(days)
+    hours = int(hours)
+    minutes = int(minutes)
+    seconds = int(seconds)
+    etf_string = f"{days:02d}d {hours:02d}h {minutes:02d}m {seconds:02d}s"
 
-  # estimated time to finish
-  remaining_post_size_GiB = postdata['total_post_size_GiB'] - current_post_size_GiB
-  etf_sec = remaining_post_size_GiB / (throughput_MiBps / 1024)
-  days, remainder = divmod(etf_sec, 86400)    # 86400 seconds in a day
-  hours, remainder = divmod(remainder, 3600)  # 3600 seconds in an hour
-  minutes, seconds = divmod(remainder, 60)
-  days = int(days)
-  hours = int(hours)
-  minutes = int(minutes)
-  seconds = int(seconds)
-  etf_string = f"{days:02d}d {hours:02d}h {minutes:02d}m {seconds:02d}s"
+    recent_etf_sec = remaining_post_size_GiB / (recent_throughput_MiBps / 1024)
+    recent_days, recent_remainder = divmod(recent_etf_sec, 86400)    # 86400 seconds in a day
+    recent_hours, recent_remainder = divmod(recent_remainder, 3600)  # 3600 seconds in an hour
+    recent_minutes, recent_seconds = divmod(recent_remainder, 60)
+    recent_days = int(recent_days)
+    recent_hours = int(recent_hours)
+    recent_minutes = int(recent_minutes)
+    recent_seconds = int(recent_seconds)
+    recent_etf_string = f"{recent_days:02d}d {recent_hours:02d}h {recent_minutes:02d}m {recent_seconds:02d}s"
 
-  recent_etf_sec = remaining_post_size_GiB / (recent_throughput_MiBps / 1024)
-  recent_days, recent_remainder = divmod(recent_etf_sec, 86400)    # 86400 seconds in a day
-  recent_hours, recent_remainder = divmod(recent_remainder, 3600)  # 3600 seconds in an hour
-  recent_minutes, recent_seconds = divmod(recent_remainder, 60)
-  recent_days = int(recent_days)
-  recent_hours = int(recent_hours)
-  recent_minutes = int(recent_minutes)
-  recent_seconds = int(recent_seconds)
-  recent_etf_string = f"{recent_days:02d}d {recent_hours:02d}h {recent_minutes:02d}m {recent_seconds:02d}s"
-
-  # estimated finish date
-  current_date = datetime.datetime.now()
-  time_diff_timedelta = datetime.timedelta(seconds=etf_sec)
-  recent_time_diff_timedelta = datetime.timedelta(seconds=recent_etf_sec)
-  efd = current_date + recent_time_diff_timedelta
-  efd = efd.strftime("%Y-%m-%d %H:%M")
+    # estimated finish date
+    current_date = datetime.datetime.now()
+    time_diff_timedelta = datetime.timedelta(seconds=etf_sec)
+    recent_time_diff_timedelta = datetime.timedelta(seconds=recent_etf_sec)
+    efd = current_date + recent_time_diff_timedelta
+    efd = efd.strftime("%Y-%m-%d %H:%M")
 
   print_output()
 else:
