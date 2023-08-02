@@ -68,147 +68,142 @@ def detect_cpu():
         }
 
 def detect_gpus():
-    gpu_info = []
-    if platform.system() == 'Linux':
-        gpu_info.extend(detect_linux_gpus())
-    elif platform.system() == 'Windows':
-        gpu_info.extend(detect_windows_gpus())
-    elif platform.system() == 'Darwin':
-        gpu_info.extend(detect_macos_gpus())
-    return gpu_info
+  gpu_info = []
+  if platform.system() == 'Linux':
+    gpu_info.extend(detect_linux_gpus())
+  elif platform.system() == 'Windows':
+    gpu_info.extend(detect_windows_gpus())
+  elif platform.system() == 'Darwin':
+    gpu_info.extend(detect_macos_gpus())
+  return gpu_info
 
 def detect_linux_gpus():
-    gpu_info = []
-    nvidia_gpus = detect_nvidia_gpus()
-    amd_gpus = detect_amd_gpus()
-    intel_gpus = detect_intel_gpus()
-    gpu_info.extend(nvidia_gpus)
-    gpu_info.extend(amd_gpus)
-    gpu_info.extend(intel_gpus)
-    return gpu_info
+  gpu_info = []
+  nvidia_gpus = detect_nvidia_gpus()
+  amd_gpus = detect_amd_gpus()
+  intel_gpus = detect_intel_gpus()
+  gpu_info.extend(nvidia_gpus)
+  gpu_info.extend(amd_gpus)
+  gpu_info.extend(intel_gpus)
+  return gpu_info
 
 def detect_nvidia_gpus():
-    gpu_info = []
-    command = 'nvidia-smi --query-gpu=gpu_name --format=csv,noheader 2>/dev/null'
-    try:
-        output = subprocess.check_output(command, shell=True).decode().strip()
-        gpu_names = output.split('\n')
-        for gpu_name in gpu_names:
-            name = 'NVIDIA ' + gpu_name
-            gpu_info.append({'vendor': 'NVIDIA', 'model': gpu_name, 'name': name})
-    except subprocess.CalledProcessError:
-        pass
-    return gpu_info
+  gpu_info = []
+  command = 'nvidia-smi --query-gpu=gpu_name --format=csv,noheader 2>/dev/null'
+  try:
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    gpu_names = output.split('\n')
+    for gpu_name in gpu_names:
+      name = 'NVIDIA ' + gpu_name
+      gpu_info.append({'vendor': 'NVIDIA', 'model': gpu_name, 'name': name})
+  except subprocess.CalledProcessError:
+    pass
+  return gpu_info
 
 def detect_amd_gpus():
-    gpu_info = []
-    command = 'rocm-smi --showproductname 2>/dev/null'
-    try:
-        output = subprocess.check_output(command, shell=True).decode().strip()
-        gpu_names = output.split('\n')
-        for gpu_name in gpu_names:
-            name = 'AMD ' + gpu_name
-            gpu_info.append({'vendor': 'AMD', 'model': gpu_name, 'name': name})
-    except subprocess.CalledProcessError:
-        pass
-    return gpu_info
+  gpu_info = []
+  command = 'rocm-smi --showproductname 2>/dev/null'
+  try:
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    gpu_names = output.split('\n')
+    for gpu_name in gpu_names:
+      name = 'AMD ' + gpu_name
+      gpu_info.append({'vendor': 'AMD', 'model': gpu_name, 'name': name})
+  except subprocess.CalledProcessError:
+    pass
+  return gpu_info
 
 def detect_intel_gpus():
-    gpu_info = []
-    command = 'lspci -mm -n -d ::0300 2>/dev/null | awk -F " " \'{print $3}\''
-    try:
-        output = subprocess.check_output(command, shell=True).decode().strip()
-        gpu_device_ids = output.split('\n')
-        for device_id in gpu_device_ids:
-            model_name = detect_intel_model_name(device_id)
-            if model_name:
-                name = 'Intel ' + model_name
-                gpu_info.append({'vendor': 'Intel', 'model': model_name, 'name': name})
-    except subprocess.CalledProcessError:
-        gpu_info.extend(detect_intel_gpus_alt())
-    return gpu_info
+  gpu_info = []
+  command = 'lspci -mm -n -d ::0300 2>/dev/null | awk -F " " \'{print $3}\''
+  try:
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    gpu_device_ids = output.split('\n')
+    for device_id in gpu_device_ids:
+      model_name = detect_intel_model_name(device_id)
+      if model_name:
+        name = 'Intel ' + model_name
+        gpu_info.append({'vendor': 'Intel', 'model': model_name, 'name': name})
+  except subprocess.CalledProcessError:
+    gpu_info.extend(detect_intel_gpus_alt())
+  return gpu_info
 
 def detect_intel_model_name(device_id):
-    command = f'lspci -mm -n -s {device_id} -vnn 2>/dev/null | grep "Device" | awk -F ": " \'{{print $2}}\''
-    try:
-        output = subprocess.check_output(command, shell=True).decode().strip()
-        model_name = output.split(' [')[0]
-        return model_name
-    except subprocess.CalledProcessError:
-        return None
+  command = f'lspci -mm -n -s {device_id} -vnn 2>/dev/null | grep "Device" | awk -F ": " \'{{print $2}}\''
+  try:
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    model_name = output.split(' [')[0]
+    return model_name
+  except subprocess.CalledProcessError:
+    return None
 
 def detect_intel_gpus_alt():
-    gpu_info = []
-    try:
-        command = 'lshw -C display -json 2>/dev/null'
-        output = subprocess.check_output(command, shell=True).decode().strip()
-        gpu_data = json.loads(output)['displays']
-        for gpu in gpu_data:
-            if gpu['vendor'] == 'Intel':
-                model_name = gpu['product']
-                name = 'Intel ' + model_name
-                gpu_info.append({'vendor': 'Intel', 'model': model_name, 'name': name})
-    except (subprocess.CalledProcessError, KeyError, json.JSONDecodeError):
-        gpu_info.extend(detect_intel_gpus_dmidecode())
-    return gpu_info
+  gpu_info = []
+  try:
+    command = 'lshw -C display -json 2>/dev/null'
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    gpu_data = json.loads(output)['displays']
+    for gpu in gpu_data:
+      if gpu['vendor'] == 'Intel':
+        model_name = gpu['product']
+        name = 'Intel ' + model_name
+        gpu_info.append({'vendor': 'Intel', 'model': model_name, 'name': name})
+  except (subprocess.CalledProcessError, KeyError, json.JSONDecodeError):
+    gpu_info.extend(detect_intel_gpus_dmidecode())
+  return gpu_info
 
 def detect_intel_gpus_dmidecode():
-    gpu_info = []
-    try:
-        command = 'dmidecode -t 3 | grep "VGA" -A 5 | grep "Product Name" | awk -F ": " \'{print $2}\''
-        output = subprocess.check_output(command, shell=True).decode().strip()
-        gpu_names = output.split('\n')
-        for gpu_name in gpu_names:
-            name = 'Intel ' + gpu_name.strip()
-            gpu_info.append({'vendor': 'Intel', 'model': gpu_name.strip(), 'name': name})
-    except subprocess.CalledProcessError:
-        pass
-    return gpu_info
+  gpu_info = []
+  try:
+    command = 'dmidecode -t 3 | grep "VGA" -A 5 | grep "Product Name" | awk -F ": " \'{print $2}\''
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    gpu_names = output.split('\n')
+    for gpu_name in gpu_names:
+      name = 'Intel ' + gpu_name.strip()
+      gpu_info.append({'vendor': 'Intel', 'model': gpu_name.strip(), 'name': name})
+  except subprocess.CalledProcessError:
+    pass
+  return gpu_info
 
 def detect_windows_gpus():
-    gpu_info = []
-    command = 'wmic PATH Win32_VideoController GET Name'
-    try:
-        output = subprocess.check_output(command, shell=True).decode().strip()
-        gpu_names = output.split('\n')[1:]
-        for gpu_name in gpu_names:
-            name = 'NVIDIA ' + gpu_name.strip()
-            gpu_info.append({'vendor': 'NVIDIA', 'model': gpu_name.strip(), 'name': name})
-    except subprocess.CalledProcessError:
-        pass
-    return gpu_info
+  gpu_info = []
+  command = 'wmic PATH Win32_VideoController GET Name'
+  try:
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    gpu_names = output.split('\n')[1:]
+    for gpu_name in gpu_names:
+      name = 'NVIDIA ' + gpu_name.strip()
+      gpu_info.append({'vendor': 'NVIDIA', 'model': gpu_name.strip(), 'name': name})
+  except subprocess.CalledProcessError:
+    pass
+  return gpu_info
 
 def detect_macos_gpus():
-    gpu_info = []
-    command = '/usr/sbin/system_profiler SPDisplaysDataType | awk -F": " \'/^\\s*Chipset Model:/ {print $2}\''
-    try:
-        output = subprocess.check_output(command, shell=True).decode().strip()
-        gpu_names = output.split('\n')
-        for gpu_name in gpu_names:
-            name = 'AMD ' + gpu_name.strip()
-            gpu_info.append({'vendor': 'AMD', 'model': gpu_name.strip(), 'name': name})
-    except subprocess.CalledProcessError:
-        pass
-    return gpu_info
+  gpu_info = []
+  command = '/usr/sbin/system_profiler SPDisplaysDataType | awk -F": " \'/^\\s*Chipset Model:/ {print $2}\''
+  try:
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    gpu_names = output.split('\n')
+    for gpu_name in gpu_names:
+      name = 'AMD ' + gpu_name.strip()
+      gpu_info.append({'vendor': 'AMD', 'model': gpu_name.strip(), 'name': name})
+  except subprocess.CalledProcessError:
+    pass
+  return gpu_info
 
 def detect_linux_distribution():
-    with open('/etc/os-release', 'r') as f:
-        lines = f.readlines()
-    dist_info = {}
-    for line in lines:
-        if '=' in line:
-            key, value = line.strip().split('=')
-            dist_info[key] = value.strip('"')
+  with open('/etc/os-release', 'r') as f:
+    lines = f.readlines()
+  dist_info = {}
+  for line in lines:
+    if '=' in line:
+      key, value = line.strip().split('=')
+      dist_info[key] = value.strip('"')
 
-    dist_name = dist_info.get('PRETTY_NAME', '')
-    dist_version = dist_info.get('VERSION_ID', '')
-    dist_id = dist_info.get('ID', '').capitalize()
-    return dist_name, dist_version, dist_id
-
-dist_name, dist_version, dist_id = detect_linux_distribution()
-print("Distribution name:", dist_name)
-print("Distribution version:", dist_version)
-print("Distribution ID:", dist_id)
+  dist_name = dist_info.get('PRETTY_NAME', '')
+  dist_version = dist_info.get('VERSION_ID', '')
+  dist_id = dist_info.get('ID', '').capitalize()
+  return dist_name, dist_version, dist_id
 
 def detect_os():
   global operating_system
