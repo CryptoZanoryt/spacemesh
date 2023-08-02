@@ -20,7 +20,7 @@ import subprocess
 
 version = "1.0.0"
 uname = platform.uname()
-operating_system = sys.platform
+operating_system = None
 provider = 'CPU'
 nvidia = False
 amd = False
@@ -56,6 +56,29 @@ def detect_gpus():
   except Exception:
     amd = False
 
+def detect_os():
+  global operating_system, operating_system_version
+  if platform.system() == 'Linux' and hasattr(platform, 'linux_distribution'):
+    operating_system = {
+      'system': platform.system(),
+      'distribution': platform.linux_distribution()[0],
+      'version': platform.linux_distribution()[1]
+    }
+  if platform.system() == 'Darwin' and hasattr(platform, 'mac_ver'):
+    operating_system = {
+      'system': 'macOS',
+      'version': platform.mac_ver()[0]
+    }
+  if platform.system() == 'Windows' and hasattr(platform, 'win32_ver'):
+    operating_system = {
+      'system': 'Windows',
+      'release': platform.win32_ver()[0],
+      'version': platform.win32_ver()[1],
+      'service_pack': platform.win32_ver()[2],
+      'processor_support': platform.win32_ver()[3],
+      'edition': platform.win32_edition()
+    }
+
 def detect_provider():
   global provider
   if force_cpu or force_gpu:
@@ -70,7 +93,7 @@ def detect_provider():
       provider = 'CPU'
 
 def print_cpu_info():
-  print('Detected CPU: ' + uname.processor)
+  print('Detected CPU: ' + uname.machine)
 
 def print_gpu_info():
   if nvidia or amd:
@@ -81,6 +104,9 @@ def print_gpu_info():
       print('Detected GPU: AMD')
   else:
     print('Detected GPU: N/A')
+
+def print_os_info():
+  print(f"Operating System: {operating_system['system']} {operating_system['version']}")
 
 def print_provider_info():
   if force_cpu or force_gpu:
@@ -165,17 +191,19 @@ def print_output():
     },
     'uname': {
       'machine': uname.machine,
+      'processor': uname.processor,
       'system': uname.system,
       'release': uname.release
     },
     'cpu': {
-      'type': uname.processor
+      'type': uname.machine
     },
     'gpu': {
       'nvidia': nvidia,
       'amd': amd,
       'devices': []
     },
+    'os': operating_system,
     'provider': {
       'force_cpu': force_cpu,
       'force_gpu': force_gpu,
@@ -210,7 +238,6 @@ def print_output():
     print(json.dumps(data))
     sys.exit(0)
 
-  print(uname)
   print(f"Progress .................................... {current_post_size_GiB:.2f} of {postdata['total_post_size_GiB']:.2f} GiB ({progress_percent:.2f}%)")
   print(f"PoST Size ................................... All: {postdata['total_post_size_GiB']} GiB, Current: {current_post_size_GiB} GiB, Remain: {remaining_post_size_GiB} GiB")
   print(f"First complete file ......................... {first_file}")
@@ -256,7 +283,9 @@ def post_report(data):
   return data
 
 parse_arguments()
+detect_os()
 detect_gpus()
+detect_provider()
 
 if print_header:
   print(f"Smesher Plot Speed v{version} ({github_url})")
@@ -264,7 +293,7 @@ if print_header:
   print_cpu_info()
   print_gpu_info()
   print_provider_info()
-  print(f"OS: {uname.system} {uname.release}")
+  print_os_info()
   print()
 
 directory = sys.argv[1]
