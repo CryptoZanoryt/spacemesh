@@ -11,7 +11,7 @@
 # Zanoryt <zanoryt@protonmail.com>
 #
 
-PLOT_SPEED_URL="https://github.com/CryptoZanoryt/spacemesh/blob/main/plot-speed/smesher-plot-speed.py"
+PLOT_SPEED_URL="https://raw.githubusercontent.com/CryptoZanoryt/spacemesh/main/plot-speed/smesher-plot-speed.py"
 POSTCLI_VERSION="0.8.11"
 POSTCLI_PATH="/tmp/postcli"
 POSTCLI_FULLPATH="${POSTCLI_PATH}/postcli"
