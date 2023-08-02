@@ -164,6 +164,7 @@ def print_output():
       'version': version
     },
     'uname': {
+      'machine': uname.machine,
       'system': uname.system,
       'release': uname.release
     },
@@ -209,6 +210,7 @@ def print_output():
     print(json.dumps(data))
     sys.exit(0)
 
+  print(uname)
   print(f"Progress .................................... {current_post_size_GiB:.2f} of {postdata['total_post_size_GiB']:.2f} GiB ({progress_percent:.2f}%)")
   print(f"PoST Size ................................... All: {postdata['total_post_size_GiB']} GiB, Current: {current_post_size_GiB} GiB, Remain: {remaining_post_size_GiB} GiB")
   print(f"First complete file ......................... {first_file}")
