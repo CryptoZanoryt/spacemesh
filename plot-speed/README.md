@@ -29,13 +29,13 @@ Reports are collected at https://reports.smesh.cloud to show others what to expe
 
     `python smesher-plot-speed.py <path-to-your-post-files>`
 
-    Example: `python smesher-plot-speed.py ~/plot`
+    Example: `python smesher-plot-speed.py ~/plot --report`
 
     On Windows:
 
     `python smesher-plot-speed.py <path-to-your-post-files>`
 
-    Example: `python smesher-plot-speed.py C:\SMESH\plot`
+    Example: `python smesher-plot-speed.py C:\SMESH\plot --report`
 
     There is an optional .BAT file you can customize to make executing this easier.
 
