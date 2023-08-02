@@ -63,8 +63,8 @@ def detect_cpu():
     for line in all_info.split("\n"):
       if "model name" in line:
         cpu = {
-          'name': re.sub( ".*model name.*:", "", line, 1),
-          'type': re.sub( ".*model name.*:", "", line, 1)
+          'name': re.sub( ".*model name.*: ", "", line, 1),
+          'type': re.sub( ".*model name.*: ", "", line, 1)
         }
 
 def detect_gpus():
