@@ -22,6 +22,7 @@ version = "1.0.0"
 uname = platform.uname()
 operating_system = None
 cpu = { 'name': '' }
+gpus = []
 provider = 'CPU'
 nvidia = False
 amd = False
@@ -67,20 +68,87 @@ def detect_cpu():
         }
 
 def detect_gpus():
+  global gpus
   global nvidia
   global amd
   global devices
 
-  try:
-    subprocess.check_output('nvidia-smi')
-    nvidia = True
-  except Exception: # this command not being found can raise quite a few different errors depending on the configuration
-    nvidia = False
-  try:
-    subprocess.check_output('rocm-smi')
-    amd = True
-  except Exception:
-    amd = False
+  if operating_system['system'] == 'Windows':
+    command = 'wmic path win32_VideoController get name'
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    devices = output.split('\r\n')[1:]
+    for i in range(len(devices)):
+      devices[i] = devices[i].strip()
+    if 'NVIDIA' in devices[0]:
+      nvidia = True
+    if 'AMD' in devices[0]:
+      amd = True
+    print(devices)
+    gpu_list = []
+    for device in devices:
+      name = device.strip()
+      vendor = name.split(None, 1)[0]
+      model = name.split(None, 1)[1]
+      gpu_list.append({
+        'vendor': vendor,
+        'model': model,
+        'name': name
+      })
+  elif operating_system['system'] == 'Linux':
+    command = 'lspci -vnn | grep VGA'
+    output = subprocess.check_output(command, shell=True).decode().strip()
+    devices = output.split('\n')
+    for i in range(len(devices)):
+      devices[i] = devices[i].strip()
+    if 'NVIDIA' in devices[0]:
+      nvidia = True
+    if 'AMD' in devices[0]:
+      amd = True
+  elif operating_system['system'] == 'macOS':
+    command = ['/usr/sbin/system_profiler', 'SPDisplaysDataType']
+    output = subprocess.run(command, capture_output=True, text=True).stdout
+    gpu_vendor = None
+    gpu_model = None
+
+    match = re.search(r'Vendor:\s*(.*) \(.*\)', output)
+    if match:
+      gpu_vendor = match.group(1)
+      print(gpu_vendor)
+      if gpu_vendor:
+        if 'NVIDIA' in gpu_vendor:
+          nvidia = True
+        if 'AMD' in gpu_vendor:
+          amd = True
+
+    match = re.search(r'Chipset Model:\s*(.*)', output)
+    if match:
+      gpu_model = match.group(1)
+      print(gpu_model)
+      if gpu_model:
+        if 'NVIDIA' in gpu_model:
+          nvidia = True
+        if 'AMD' in gpu_model:
+          amd = True
+
+    gpus.append({
+      'vendor': gpu_vendor,
+      'model': gpu_model,
+      'name': f"{gpu_vendor} {gpu_model}"
+    })
+
+  else:
+    print('Unsupported operating system')
+
+  # try:
+  #   subprocess.check_output('nvidia-smi')
+  #   nvidia = True
+  # except Exception: # this command not being found can raise quite a few different errors depending on the configuration
+  #   nvidia = False
+  # try:
+  #   subprocess.check_output('rocm-smi')
+  #   amd = True
+  # except Exception:
+  #   amd = False
 
 def detect_os():
   global operating_system, operating_system_version
@@ -122,7 +190,9 @@ def print_cpu_info():
   print('Detected CPU: ' + cpu['type'])
 
 def print_gpu_info():
-  if nvidia or amd:
+  if gpus:
+    print(f"Detected GPU(s): { ', '.join([gpu['name'] for gpu in gpus]) }")
+  elif nvidia or amd:
     if nvidia:
       print('Detected GPU: Nvidia')
       subprocess.run('nvidia-smi -L')
@@ -210,6 +280,17 @@ def postdata_bin_files(directory):
   return files
 
 def print_output():
+  gpu_list = [
+    {
+      "name": name,
+      "count": sum(1 for gpu in gpus if gpu.get("name") == name),
+      "vendor": gpu.get("vendor"),
+      "model": gpu.get("model")
+    }
+    for name in set(gpu.get("name") for gpu in gpus)
+    for gpu in gpus
+    if gpu.get("name") == name
+  ]
   data = {
     'app': {
       'name': 'smesher-plot-speed',
@@ -225,7 +306,8 @@ def print_output():
     'gpu': {
       'nvidia': nvidia,
       'amd': amd,
-      'devices': []
+      'devices': gpus,
+      'devices_compressed': gpu_list
     },
     'os': operating_system,
     'provider': {
