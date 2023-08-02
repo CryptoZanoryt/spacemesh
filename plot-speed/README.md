@@ -10,7 +10,7 @@ This was taken from the original `plot_speed.py` and was augmented to add:
 * support of multiple plot segment files created by multi-GPU generation by multiple instances of `postcli`
 * optionally send anonymized reports to reports.smesh.cloud (disabled by default)
 
-Reports are collected at https://reports.smesh.cloud to show others what to expect from their hardware. You are encouraged to contribute by specifying the `--report` flag.
+Reports are collected at https://reports.smesh.cloud to show others what to expect from their hardware. You are encouraged to contribute by specifying the optional `--report` flag. Your Node ID is anonymized for privacy.
 
 ## Usage
 
