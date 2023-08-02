@@ -15,13 +15,13 @@ PLOT_SPEED_URL="https://raw.githubusercontent.com/CryptoZanoryt/spacemesh/main/p
 POSTCLI_VERSION="0.8.11"
 POSTCLI_PATH="/tmp/postcli"
 POSTCLI_FULLPATH="${POSTCLI_PATH}/postcli"
-PLOT_SPEED_FULLPATH="${POSTCLI_PATH}/smesher-plot-speed.py"
+PLOT_SPEED_FULLPATH="/tmp/smesher-plot-speed.py"
 POST_DATA_PATH="/tmp/post-data"
 
 # Update system and install dependencies
 apt update
 apt install -y clinfo
-apt install -y nvtop htop screen unzip xxd
+apt install -y nvtop htop screen unzip xxd python3
 
 # Download postcli
 rm -rf $POSTCLI_PATH
@@ -57,7 +57,7 @@ mkdir -p $POST_DATA_PATH
 
 echo "Initializing screen"
 screen -d -m -S post
-screen -S post -X exec watch -n 5 python3 $PLOT_SPEED_FULLPATH ${POST_DATA_PATH}/
+screen -S post -X exec watch -n 5 python3 $PLOT_SPEED_FULLPATH ${POST_DATA_PATH} --report
 screen -s post -X screen -t nvtop
 screen -S post -p nvtop -X exec nvtop
 screen -S post -X screen -t htop
