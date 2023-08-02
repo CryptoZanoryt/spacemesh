@@ -306,9 +306,9 @@ def parse_arguments():
   if not os.path.isfile(directory + "/postdata_metadata.json"):
     print("The provided directory does not contain postdata_metadata.json.")
     sys.exit(1)
-  if not os.path.isfile(directory + "/smeshing_metadata.json"):
-    print("The provided directory does not contain smeshing_metadata.json, has the smesher started yet?")
-    sys.exit(1)
+  # if not os.path.isfile(directory + "/smeshing_metadata.json"):
+  #   print("The provided directory does not contain smeshing_metadata.json, has the smesher started yet?")
+  #   sys.exit(1)
   if not os.path.isfile(directory + "/postdata_0.bin"):
     print("The provided directory does not contain postdata_0.bin yet.")
     sys.exit(1)
