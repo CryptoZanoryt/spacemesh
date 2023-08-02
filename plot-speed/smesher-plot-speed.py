@@ -50,10 +50,11 @@ def detect_cpu():
     }
   elif platform.system() == "Darwin":
     os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
-    command ="sysctl -n machdep.cpu.brand_string"
+    command = ["sysctl", "-n", "machdep.cpu.brand_string"]
+    output = subprocess.check_output(command).decode().strip()
     cpu = {
-      'name': subprocess.check_output(command).strip(),
-      'type': subprocess.check_output(command).strip()
+      'name': output,
+      'type': output
     }
   elif platform.system() == "Linux":
     command = "cat /proc/cpuinfo"
