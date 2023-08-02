@@ -455,7 +455,7 @@ def post_report(data):
 parse_arguments()
 detect_os()
 detect_cpu()
-detect_gpus()
+gpus = detect_gpus()
 detect_provider()
 
 if print_header:
