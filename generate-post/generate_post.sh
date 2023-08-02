@@ -31,7 +31,7 @@ unzip -u postcli-Linux.zip -d $POSTCLI_PATH
 rm postcli-Linux.zip
 chmod +x $POSTCLI_FULLPATH
 
-wget -O $PLOT_SPEED_FULL_PATH $PLOT_SPEED_URL
+wget -O $PLOT_SPEED_FULLPATH $PLOT_SPEED_URL
 
 # nodeId in base64 format
 nodeId="URZgMjtU06WgahvNHpvtr89NnB2IIhw2Yo8ZqfZx0ts="
