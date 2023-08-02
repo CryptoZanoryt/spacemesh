@@ -26,7 +26,9 @@ apt install -y nvtop htop screen unzip xxd
 # Download postcli
 rm -rf $POSTCLI_PATH
 mkdir -p $POSTCLI_PATH
-wget -O- https://github.com/spacemeshos/post/releases/download/v${POSTCLI_VERSION}/postcli-Linux.zip | unzip -u - -d $POSTCLI_PATH
+wget -q -O postcli-Linux.zip https://github.com/spacemeshos/post/releases/download/v${POSTCLI_VERSION}/postcli-Linux.zip
+unzip -u postcli-Linux.zip -d $POSTCLI_PATH
+rm postcli-Linux.zip
 chmod +x $POSTCLI_FULLPATH
 
 wget -O $PLOT_SPEED_FULL_PATH $PLOT_SPEED_URL
