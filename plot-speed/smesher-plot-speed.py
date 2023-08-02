@@ -117,7 +117,7 @@ def detect_intel_gpus():
   gpu_info = []
   try:
     subprocess.run(['update-pciids'])  # Update PCI ID database
-    command = 'lspci -mm -n -d ::0300 2>/dev/null | awk -F " " \'{print $1":"$2}\''
+    command = 'lspci -mm -n -d ::0300 2>/dev/null | awk -F " " \'{print $3":"$4}\''
     output = subprocess.check_output(command, shell=True).decode().strip()
     device_ids = output.split('\n')
     for device_id in device_ids:
@@ -133,9 +133,9 @@ def detect_intel_gpus():
 
 def detect_intel_model_name(vendor_id, model_id):
   try:
-    command = f'lspci -mm -n -s {vendor_id}:{model_id} -vnn 2>/dev/null | grep "Device" | awk -F ":" \'{{print $2}}\''
+    command = f'lspci -mm -n -s ::{vendor_id}:{model_id} -vnn 2>/dev/null | grep "Device" | awk -F ":" \'{{print $2}}\''
     output = subprocess.check_output(command, shell=True).decode().strip()
-    model_name = output.split(' [')[0]
+    model_name = output.split(' [')[0].replace('"', '')
     return model_name
   except subprocess.CalledProcessError:
     return None
