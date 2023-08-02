@@ -21,7 +21,7 @@ POST_DATA_PATH="/tmp/post-data"
 # Update system and install dependencies
 apt update
 apt install -y clinfo
-apt install -y nvtop htop screen unzip xxd python3
+apt install -y nvtop htop screen unzip xxd python3 tmux
 
 # Download postcli
 rm -rf $POSTCLI_PATH
@@ -55,27 +55,44 @@ echo "commitmentAtxId: ${commitmentAtxId}"
 rm -rf $POST_DATA_PATH
 mkdir -p $POST_DATA_PATH
 
-echo "Initializing screen"
-screen -d -m -S post
-screen -S post -X exec watch -n 5 python3 $PLOT_SPEED_FULLPATH ${POST_DATA_PATH} --report
-screen -s post -X screen -t nvtop
-screen -S post -p nvtop -X exec nvtop
-screen -S post -X screen -t htop
-screen -S post -p htop -X exec htop
+# echo "Initializing screen"
+# screen -d -m -S post
+# screen -S post -X exec watch -n 5 python3 $PLOT_SPEED_FULLPATH ${POST_DATA_PATH} --report
+# screen -s post -X screen -t nvtop
+# screen -S post -p nvtop -X exec nvtop
+# screen -S post -X screen -t htop
+# screen -S post -p htop -X exec htop
+
+# echo "Generating post files..."
+# for ((i=1; i<=$numGpus; i++))
+# do
+#   provider=$((i-1))
+#   screen -S post -X screen -t post$provider
+#   screen -S post -p post0 -X exec bash -c "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $id -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash"
+# done
+
+echo "Initializing tmux"
+tmux new-session -d -s post
+tmux send-keys -t post "watch -n 5 python3 $PLOT_SPEED_FULLPATH ${POST_DATA_PATH} --report" Enter
+tmux new-window -t post -n nvtop
+tmux send-keys -t post:1 "nvtop" Enter
+tmux new-window -t post -n htop
+tmux send-keys -t post:2 "htop" Enter
 
 echo "Generating post files..."
 for ((i=1; i<=$numGpus; i++))
 do
   provider=$((i-1))
-  screen -S post -X screen -t post$provider
-  screen -S post -p post0 -X exec bash -c "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $id -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash"
+  tmux new-window -t post -n post$provider
+  tmux send-keys -t post:$i "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $id -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash" Enter
 done
 
 echo "Started generating the PoST data files."
 echo ""
-echo "To attach to the screen session, run:"
+echo "To attach to the tmux session, run:"
 echo ""
-echo "  screen -d -r post"
+# echo "  screen -d -r post"
+echo "  tmux attach-session -t post"
 echo ""
 echo "Have fun!"
 
