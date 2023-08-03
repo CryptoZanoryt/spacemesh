@@ -499,7 +499,7 @@ previous_most_recent_complete_file = None
 previous_most_recent_complete_file_size = None
 
 # Check if at least two files exist
-if len(files_by_mod_time_desc) >= 2:
+if len(files_by_mod_time_desc) >= 2 * num_gpus:
   complete_files = [file for file in files_by_mod_time_desc if os.path.getsize(os.path.join(directory, file)) == postdata['max_file_size']]
   first_file = os.path.join(directory, files_by_mod_time_desc[-1])
   previous_most_recent_complete_file = os.path.join(directory, complete_files[1])
