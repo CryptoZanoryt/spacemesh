@@ -422,6 +422,8 @@ def print_output():
   print(f"Estimated finish date ....................... {efd}")
   if send_report:
     print(f"Report sent ................................. {data['report']['sent']}")
+    print()
+    print("See all report aggregates at https://reports.smesh.cloud")
 
 def print_syntax():
   print("Syntax: python smesher-plot-speed.py [options] <directory>")
