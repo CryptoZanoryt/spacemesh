@@ -61,8 +61,9 @@ echo "Generating post files..."
 for ((i=1; i<=$numGpus; i++))
 do
   provider=$((i-1))
-  tmux new-window -t post -n post$provider
-  tmux send-keys -t post:post$provider "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash" Enter
+  window_index=$((i+2))
+  tmux new-window -t post:post$window_index -n post$window_index
+  tmux send-keys -t post:post$window_index "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash" Enter
 done
 
 echo "Started generating the PoST data files."
