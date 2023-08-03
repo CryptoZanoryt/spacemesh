@@ -116,7 +116,8 @@ def detect_amd_gpus():
 def detect_intel_gpus():
   gpu_info = []
   try:
-    subprocess.run(['update-pciids'])  # Update PCI ID database
+    command = 'update-pciids 2>/dev/null'
+    subprocess.check_output(command, shell=True)
     command = 'lspci -mm -n -d ::0300 2>/dev/null | awk -F " " \'{print $3":"$4}\''
     output = subprocess.check_output(command, shell=True).decode().strip()
     device_ids = output.split('\n')
