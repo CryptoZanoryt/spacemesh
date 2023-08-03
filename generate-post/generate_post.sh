@@ -4,7 +4,7 @@
 #
 ## Usage:
 #
-#   ./generate_post.sh
+#   ./generate_post.sh <nodeId> <commitmentAtxId>
 #
 ## Author:
 #
