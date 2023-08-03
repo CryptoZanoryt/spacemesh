@@ -565,7 +565,7 @@ else:
 
   # estimated time to finish
   remaining_post_size_GiB = postdata['total_post_size_GiB'] - current_post_size_GiB
-  etf_sec = remaining_post_size_GiB / (aggregated_throughput_MiBps / 1024)
+  etf_sec = remaining_post_size_GiB / (throughput_MiBps / 1024)
   days, remainder = divmod(etf_sec, 86400)    # 86400 seconds in a day
   hours, remainder = divmod(remainder, 3600)  # 3600 seconds in an hour
   minutes, seconds = divmod(remainder, 60)
