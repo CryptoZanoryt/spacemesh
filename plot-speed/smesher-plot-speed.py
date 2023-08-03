@@ -417,7 +417,7 @@ def print_output():
   print(f"Current file ................................ {current_file}")
   print(f"Time since last completed file .............. {most_recent_time_delta_string}")
   print(f"Recent Plotting speed ....................... {recent_throughput_MiBps:.2f} MiB/s")
-  print(f"Aggregated Average Plot Speed ............... {aggregated_throughput_MiBps:.2f} MiB/s")
+  print(f"Average Plot Speed ............... {throughput_MiBps:.2f} MiB/s")
   print(f"Estimated finish time ....................... {recent_etf_string}")
   print(f"Estimated finish date ....................... {efd}")
   if send_report:
@@ -537,7 +537,6 @@ time_between_most_recent_and_current = abs(current_time - most_recent_time)
 
 size_MiB = (total_size - first_file_size) / (1024 * 1024)  # Convert size to MiB
 throughput_MiBps = size_MiB / first_time_diff
-aggregated_throughput_MiBps = throughput_MiBps * num_gpus
 if current_file == most_recent_complete_file:
   print(f"PoST generation is complete!")
   print()
@@ -549,7 +548,7 @@ if current_file == most_recent_complete_file:
 else:
   most_recent_complete_file_size = os.path.getsize(most_recent_complete_file)
   recent_size_MiB = (current_size) / (1024 * 1024)
-  recent_throughput_MiBps = recent_size_MiB / time_between_most_recent_and_current
+  recent_throughput_MiBps = recent_size_MiB / time_between_most_recent_and_current * num_gpus
 
   # Calculate time difference in minutes and seconds
   first_minutes, first_seconds = divmod(first_time_diff, 60)
