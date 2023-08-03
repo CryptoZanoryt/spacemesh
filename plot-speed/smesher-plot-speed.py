@@ -216,12 +216,14 @@ def detect_os():
     operating_system = {
       'system': platform.system(),
       'distribution': distro_id,
-      'version': distro_version
+      'version': distro_version,
+      'name': f"{distro_id} {platform.system()} {distro_version}"
     }
   if platform.system() == 'Darwin' and hasattr(platform, 'mac_ver'):
     operating_system = {
       'system': 'macOS',
-      'version': platform.mac_ver()[0]
+      'version': platform.mac_ver()[0],
+      'name': f"{macOS} {platform.mac_ver()[0]}"
     }
   if platform.system() == 'Windows' and hasattr(platform, 'win32_ver'):
     operating_system = {
@@ -230,7 +232,8 @@ def detect_os():
       'version': platform.win32_ver()[1],
       'service_pack': platform.win32_ver()[2],
       'processor_support': platform.win32_ver()[3],
-      'edition': platform.win32_edition()
+      'edition': platform.win32_edition(),
+      'name': f"Windows {version}"
     }
 
 def detect_provider():
