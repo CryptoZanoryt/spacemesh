@@ -57,11 +57,11 @@ tmux send-keys -t post:nvtop "nvtop" Enter
 tmux new-window -t post -n htop
 tmux send-keys -t post:htop "htop" Enter
 
-echo "Generating post files..."
+echo "Spawning tmux windows to generate post files..."
 for ((i=1; i<=$numGpus; i++))
 do
   provider=$((i-1))
-  tmux new-window -t post -n post$provider
+  tmux new-window -a -t post -n post$provider
   tmux send-keys -t post:post$provider "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash" Enter
 done
 
