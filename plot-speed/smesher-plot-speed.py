@@ -465,7 +465,7 @@ detect_cpu()
 gpus = detect_gpus()
 num_gpus = len(gpus)
 detect_provider()
-file_ranges = [(int(numUnits * 32 / num_gpus * i), int(-1 + numUnits * 32 / num_gpus * (i + 1))) for i in range(num_gpus)]
+file_ranges = [(int(postdata['num_units'] * 32 / num_gpus * i), int(-1 + postdata['num_units'] * 32 / num_gpus * (i + 1))) for i in range(num_gpus)]
 
 if print_header:
   print(f"Smesher Plot Speed v{version} ({github_url})")
