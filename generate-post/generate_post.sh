@@ -50,7 +50,7 @@ rm -rf $POST_DATA_PATH
 mkdir -p $POST_DATA_PATH
 
 echo "Initializing tmux"
-tmux new-session -d -s post
+tmux new-session -d -s post -n smesher-plot-speed
 tmux send-keys -t post "watch -n 5 python3 $PLOT_SPEED_FULLPATH ${POST_DATA_PATH} --report" Enter
 tmux new-window -t post -n nvtop
 tmux send-keys -t post:nvtop "nvtop" Enter
@@ -61,9 +61,8 @@ echo "Generating post files..."
 for ((i=1; i<=$numGpus; i++))
 do
   provider=$((i-1))
-  window_index=$((i+2))
-  tmux new-window -t post:$window_index -n post$provider
-  tmux send-keys -t post:$window_index "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash" Enter
+  tmux new-window -t post -n post$provider
+  tmux send-keys -t post:post$provider "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash" Enter
 done
 
 echo "Started generating the PoST data files."
