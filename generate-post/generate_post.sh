@@ -11,6 +11,22 @@
 # Zanoryt <zanoryt@protonmail.com>
 #
 
+nodeId="URZgMjtU06WgahvNHpvtr89NnB2IIhw2Yo8ZqfZx0ts="  # nodeId in base64 format
+id=$(echo "$nodeId" | base64 -d | xxd -p -c 32 -g 32)  # nodeId in HEX format
+echo "Node ID: ${id}"
+
+commitmentAtxId="9eebff023abb17ccb775c602daade8ed708f0a50d3149a42801184f5b74f2865"
+echo "commitmentAtxId: ${commitmentAtxId}"
+
+# 2 or 4
+numGpus=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
+numGpus=$(($numGpus + 0)) # convert to int
+echo "Number of GPUs: ${numGpus}"
+
+labelsPerUnit="4294967296" # 2^32
+maxFileSize="2147483648"   # 2^31
+numUnits="19"              # Number of 64 GiB units
+
 PLOT_SPEED_URL="https://raw.githubusercontent.com/CryptoZanoryt/spacemesh/main/plot-speed/smesher-plot-speed.py"
 POSTCLI_VERSION="0.8.11"
 POSTCLI_PATH="/tmp/postcli"
@@ -32,25 +48,6 @@ rm postcli-Linux.zip
 chmod +x $POSTCLI_FULLPATH
 
 wget -O $PLOT_SPEED_FULLPATH $PLOT_SPEED_URL
-
-# nodeId in base64 format
-nodeId="URZgMjtU06WgahvNHpvtr89NnB2IIhw2Yo8ZqfZx0ts="
-# nodeId in HEX format
-id=$(echo "$nodeId" | base64 -d | xxd -p -c 32 -g 32)
-echo "ID: ${id}"
-
-labelsPerUnit="4294967296" # 2^32
-maxFileSize="2147483648"   # 2^31
-# Number of 64 GiB units
-numUnits="19"
-
-# 2 or 4
-numGpus=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
-# convert to int
-numGpus=$(($numGpus + 0))
-echo "Number of GPUs: ${numGpus}"
-commitmentAtxId="9eebff023abb17ccb775c602daade8ed708f0a50d3149a42801184f5b74f2865"
-echo "commitmentAtxId: ${commitmentAtxId}"
 
 rm -rf $POST_DATA_PATH
 mkdir -p $POST_DATA_PATH
