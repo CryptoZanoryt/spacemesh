@@ -21,6 +21,7 @@ numGpus=$(($numGpus + 0)) # convert to int
 labelsPerUnit="4294967296"                   # 2^32
 maxFileSize="2147483648"                     # 2^31
 numUnits=$(($desiredSizeGiB / 64))           # 64 GiB per unit
+numUnits=$(($numUnits + 0))                  # convert to int
 
 echo "Node ID         : ${nodeId}"
 echo "CommitmentAtxId : ${commitmentAtxId}"
@@ -54,7 +55,9 @@ rm -rf $POST_DATA_PATH
 mkdir -p $POST_DATA_PATH
 
 numFiles=$($POSTCLI_FULLPATH -numUnits $numUnits -printNumFiles)
+numFiles=$(($numFiles + 0)) # convert to int
 numFilesPerGpu=$(($numFiles / $numGpus))
+numFilesPerGpu=$(($numFilesPerGpu + 0)) # convert to int
 echo "Number of files : ${numFiles}"
 echo "Files per GPU   : ${numFilesPerGpu}"
 
