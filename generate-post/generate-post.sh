@@ -11,20 +11,23 @@
 # Zanoryt <zanoryt@protonmail.com>
 #
 
+desiredSizeGiB=${1:-256}
 nodeId=${1:-"511660323b54d3a5a06a1bcd1e9bedafcf4d9c1d88221c36628f19a9f671d2db"}
-commitmentAtxId=${2:-"9eebff023abb17ccb775c602daade8ed708f0a50d3149a42801184f5b74f2865"}
 # id=$(echo "$nodeId" | base64 -d | xxd -p -c 32 -g 32)        # nodeId in HEX format
-echo "Node ID: ${nodeId}"
-echo "commitmentAtxId: ${commitmentAtxId}"
-
-# 2 or 4
+commitmentAtxId=${2:-"9eebff023abb17ccb775c602daade8ed708f0a50d3149a42801184f5b74f2865"}
 numGpus=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
 numGpus=$(($numGpus + 0)) # convert to int
-echo "Number of GPUs: ${numGpus}"
+labelsPerUnit="4294967296"                   # 2^32
+maxFileSize="2147483648"                     # 2^31
+numUnits=$(($desiredSizeGiB / 64))           # 64 GiB per unit
 
-labelsPerUnit="4294967296" # 2^32
-maxFileSize="2147483648"   # 2^31
-numUnits="19"              # Number of 64 GiB units
+echo "Node ID         : ${nodeId}"
+echo "CommitmentAtxId : ${commitmentAtxId}"
+echo "Number of GPUs  : ${numGpus}"
+echo "Desired size    : ${desiredSizeGiB} GiB"
+echo "Labels per unit : ${labelsPerUnit}"
+echo "Max file size   : ${maxFileSize}"
+echo "Number of units : ${numUnits}"
 
 PLOT_SPEED_URL="https://raw.githubusercontent.com/CryptoZanoryt/spacemesh/main/plot-speed/smesher-plot-speed.py"
 POSTCLI_VERSION="0.8.11"
@@ -62,7 +65,10 @@ for ((i=1; i<=$numGpus; i++))
 do
   provider=$((i-1))
   tmux new-window -a -t post -n post$provider
-  tmux send-keys -t post:post$provider "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $((numUnits*32/numGpus*$provider)) -toFile $((-1+numUnits*32/numGpus*$i)); exec bash" Enter
+  fromFile=$((numUnits*32/numGpus*$provider))  # 32 bytes per unit
+  toFile=$((-1+numUnits*32/numGpus*$provider)) # 32 bytes per unit
+
+  tmux send-keys -t post:post$provider "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $fromFile -toFile $toFile; exec bash" Enter
 done
 
 echo "Started generating the PoST data files."
