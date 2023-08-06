@@ -53,7 +53,7 @@ wget -O $PLOT_SPEED_FULLPATH $PLOT_SPEED_URL
 rm -rf $POST_DATA_PATH
 mkdir -p $POST_DATA_PATH
 
-numFiles=$(($POSTCLI_FULLPATH -numUnits $numUnits -printNumFiles))
+numFiles=$($POSTCLI_FULLPATH -numUnits $numUnits -printNumFiles)
 numFilesPerGpu=$(($numFiles / $numGpus))
 echo "Number of files : ${numFiles}"
 echo "Files per GPU   : ${numFilesPerGpu}"
