@@ -12,6 +12,7 @@
 #
 
 desiredSizeGiB=${1:-256}
+desiredSizeBytes=$(($desiredSizeGiB * 1024 * 1024 * 1024))
 nodeId=${2:-"511660323b54d3a5a06a1bcd1e9bedafcf4d9c1d88221c36628f19a9f671d2db"}
 # id=$(echo "$nodeId" | base64 -d | xxd -p -c 32 -g 32)        # nodeId in HEX format
 commitmentAtxId=${3:-"9eebff023abb17ccb775c602daade8ed708f0a50d3149a42801184f5b74f2865"}
@@ -52,6 +53,11 @@ wget -O $PLOT_SPEED_FULLPATH $PLOT_SPEED_URL
 rm -rf $POST_DATA_PATH
 mkdir -p $POST_DATA_PATH
 
+numFiles=$(($POSTCLI_FULLPATH -numUnits $numUnits -printNumFiles))
+numFilesPerGpu=$(($numFiles / $numGpus))
+echo "Number of files : ${numFiles}"
+echo "Files per GPU   : ${numFilesPerGpu}"
+
 echo "Initializing tmux"
 tmux new-session -d -s post -n smesher-plot-speed
 tmux send-keys -t post "watch -n 5 python3 $PLOT_SPEED_FULLPATH ${POST_DATA_PATH} --report" Enter
@@ -65,9 +71,8 @@ for ((i=1; i<=$numGpus; i++))
 do
   provider=$((i-1))
   tmux new-window -a -t post -n post$provider
-  fromFile=$((numUnits*32/numGpus*$provider))  # 32 bytes per unit
-  toFile=$((-1+numUnits*32/numGpus*$provider)) # 32 bytes per unit
-
+  fromFile=$(($numFilesPerGpu*$provider))
+  toFile=$(($numFilesPerGpu*$provider-1))
   tmux send-keys -t post:post$provider "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $fromFile -toFile $toFile; exec bash" Enter
 done
 
