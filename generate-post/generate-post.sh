@@ -4,7 +4,7 @@
 #
 ## Usage:
 #
-#   ./generate_post.sh <nodeId> <commitmentAtxId>
+#   ./generate-post.sh <sizeGiB> <nodeId> <commitmentAtxId>
 #
 ## Author:
 #
@@ -12,9 +12,9 @@
 #
 
 desiredSizeGiB=${1:-256}
-nodeId=${1:-"511660323b54d3a5a06a1bcd1e9bedafcf4d9c1d88221c36628f19a9f671d2db"}
+nodeId=${2:-"511660323b54d3a5a06a1bcd1e9bedafcf4d9c1d88221c36628f19a9f671d2db"}
 # id=$(echo "$nodeId" | base64 -d | xxd -p -c 32 -g 32)        # nodeId in HEX format
-commitmentAtxId=${2:-"9eebff023abb17ccb775c602daade8ed708f0a50d3149a42801184f5b74f2865"}
+commitmentAtxId=${3:-"9eebff023abb17ccb775c602daade8ed708f0a50d3149a42801184f5b74f2865"}
 numGpus=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
 numGpus=$(($numGpus + 0)) # convert to int
 labelsPerUnit="4294967296"                   # 2^32
