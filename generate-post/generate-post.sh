@@ -75,7 +75,7 @@ do
   provider=$((i-1))
   tmux new-window -a -t post -n post$provider
   fromFile=$(($numFilesPerGpu*$provider))
-  toFile=$((-1+$numFilesPerGpu*$provider))
+  toFile=$((-1+$numFilesPerGpu*$provider+1))
   tmux send-keys -t post:post$provider "$POSTCLI_FULLPATH -provider $provider -commitmentAtxId $commitmentAtxId -id $nodeId -labelsPerUnit $labelsPerUnit -maxFileSize $maxFileSize -numUnits $numUnits -datadir $POST_DATA_PATH -fromFile $fromFile -toFile $toFile; exec bash" Enter
 done
 
