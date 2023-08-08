@@ -11,9 +11,9 @@ echo "Stage 1 Started"
 # Set the coinbase and data_dir variables
 config_file="config.json"
 coinbase="sm1qqqqqqxre24mtprsmuht8gfhu28z95hm22zvrdq34rmr8"
-data_dir="/tmp/smesher-data"
+data_dir="/tmp/stage1"
 
-go_spacemesh_dir="../../official/go-spacemesh"
+go_spacemesh_dir="/Users/kevin/go-spacemesh"
 go_spacemesh_bin="$go_spacemesh_dir/build/go-spacemesh"
 go_spacemesh_log="/tmp/go-spacemesh.log"
 grpc_public_listener="0.0.0.0:19092"
@@ -22,7 +22,7 @@ grpc_json_listener="0.0.0.0:19094"
 spacemesh_data_dir="/tmp/smesh-node-data"
 filelock="/tmp/sm.lock"
 listen="/ip4/0.0.0.0/tcp/7555"
-smeshing_opts_datadir="/tmp/smesh-data"
+smeshing_opts_datadir="/tmp/stage1"
 
 # Retrieve the latest mainnet config template from https://smapp.spacemesh.network/config.mainnet.json
 echo "S1.1 Retrieving latest mainnet config template"
@@ -109,7 +109,6 @@ while true; do
   state=$(echo "$status" | jq -r '.status.state')
   if [ "$state" = "STATE_IN_PROGRESS" ]; then
     echo "S1.6 Node smesher init is complete"
-
     break
   fi
   if [ "$state" = "STATE_ERROR" ]; then
@@ -129,7 +128,7 @@ port=$(echo "$listen" | awk -F/ '{print $NF}')
 echo "S1.8 Stopping node on port $port"
 pid=$(lsof -t -i :"$port")
 echo "S1.8 Killing node with pid $pid"
-kill -9 $pid
+kill $pid
 # Wait for the node to stop
 while true; do
   if [ -z "$(lsof -t -i :"$port")" ]; then
