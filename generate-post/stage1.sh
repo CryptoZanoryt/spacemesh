@@ -3,7 +3,13 @@
 # This script is used to build the first stage of the boot loader.
 #
 # Usage:
+#
 #   stage1.sh
+#
+#
+# Author:
+#
+#   Zanoryt <zanoryt@protonmail.com>
 #
 
 echo "Stage 1 Started"
@@ -13,7 +19,7 @@ config_file="config.json"
 coinbase="sm1qqqqqqxre24mtprsmuht8gfhu28z95hm22zvrdq34rmr8"
 data_dir="/tmp/stage1"
 
-go_spacemesh_dir="/Users/kevin/go-spacemesh"
+go_spacemesh_dir="/Users/kevin/work/crypto/spacemesh/official/go-spacemesh"
 go_spacemesh_bin="$go_spacemesh_dir/build/go-spacemesh"
 go_spacemesh_log="/tmp/go-spacemesh.log"
 grpc_public_listener="0.0.0.0:19092"
@@ -160,10 +166,11 @@ echo '{
   "commitment_atx_id": "'"$commitment_atx_id"'",
   "labels_per_unit": "'"$labels_per_unit"'",
   "num_units": "'"$num_units"'",
-  "max_file_size": "'"$max_file_size"'"
+  "max_file_size": "'"$max_file_size"'",
+  "disk_size": "'"$(($num_units*64))"'"
 }' > $data_dir/stage1.json
 echo "S1.10   - Saved details to stage1.json"
-tar -czf /tmp/stage1.tar.gz -C /tmp/smesh-data key.bin -C /tmp/smesher-data postdata_metadata.json stage1.json
+tar -czf /tmp/stage1.tar.gz -C $data_dir key.bin postdata_metadata.json stage1.json
 file_size=$(du -m /tmp/stage1.tar.gz | awk '{print $1}')
 echo "S1.10   - Created tarball at /tmp/stage1.tar.gz ($((file_size))MB) containing stage1.json, postdata_metadata.json and key.bin"
 
