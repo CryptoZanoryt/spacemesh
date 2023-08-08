@@ -3,7 +3,12 @@
 # This script is used to engage the second stage of the PoST installation onto a remote server.
 #
 # Usage:
+#
 #   stage2.sh <path to config file>
+#
+# Author:
+#
+#   Zanoryt <zanoryt@protonmail.com>
 #
 
 import json
