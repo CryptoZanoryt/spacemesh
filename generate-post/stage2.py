@@ -22,7 +22,7 @@ print(f"Loaded config from {stage1_path}/stage1.json")
 print(f"Node ID: {config['node_id']}")
 
 # 2. Look for runpod availability
-runpod.api_key = "GK1SEYNNFRRS2SKEGZRI8AK5UU0D7IBOQI3BSUDV"
+runpod.api_key = "YOURKEY"
 gpus = runpod.get_gpus()
 print("Available GPUs:")
 for gpu in gpus:
